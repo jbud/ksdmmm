@@ -1,11 +1,18 @@
-
+/**
+ * Kia Stinger Drive Mode Memory Module
+ * 
+ * microcontroller programming in arduino (C++)
+ * 
+ * by Joe Jackson 2020
+ * Version 0.9.1b
+ */
 #include <EEPROM.h>
 
 // comment this out when deployed:
 #define DEBUG
 
-// beta stuff
-//#define BETA
+// beta stuff (uncomment to use beta features)
+#define BETA
 
 
 // some arduinos have issues with pulling ground to some pins upon startup.
@@ -111,7 +118,7 @@ void loop() {
   // the drive mode and store it in permanent memory
   if (digitalRead(4) == LOW){
     t = millis(); // get current arduino uptime.
-    if (t -  INPUT_WAIT_TIME > p){ // if 1 second has bassed since last reading
+    if (t -  INPUT_WAIT_TIME > p){ 
       if (currentMode >= CUSTOMMODE){
         currentMode = CUSTOMMODE; 
       } else {
@@ -125,7 +132,7 @@ void loop() {
   }
   if (digitalRead(3) == LOW){
     t = millis(); // get current arduino uptime.
-    if (t - INPUT_WAIT_TIME > p){ // if 1 second has bassed since last reading
+    if (t - INPUT_WAIT_TIME > p){ 
       if (currentMode <= SMARTMODE){
         currentMode = SMARTMODE; 
       } else {
@@ -140,8 +147,8 @@ void loop() {
 #ifdef BETA
   if (digitalRead(7) == LOW){
     t = millis(); // get current arduino uptime.
-    if (t -  INPUT_WAIT_TIME > p){ // if 1 second has bassed since last reading
-      isg != isg;
+    if (t -  INPUT_WAIT_TIME > p){
+      isg = !isg; // reverse the value from current.
       sprintf(c, "ISG Triggered, Current Mode: %s", isg ? "on" : "off");
       EEPROM.write(memFuture1, isg);
       DEBUG_PRINT(c);
