@@ -150,7 +150,7 @@ void loop() {
     if (t -  INPUT_WAIT_TIME > p){
       isg = !isg; // reverse the value from current.
       sprintf(c, "ISG Triggered, Current Mode: %s", isg ? "on" : "off");
-      EEPROM.write(memFuture1, isg);
+      EEPROM.write(memFuture1Addr, isg);
       DEBUG_PRINT(c);
       p = t; // last reading is now, set p(revious) to current time
     }
