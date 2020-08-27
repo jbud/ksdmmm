@@ -40,11 +40,13 @@ const byte SPORTMODE = 3;
 const byte CUSTOMMODE = 4;
 
 byte currentMode;
+
+bool dm_inputAllowed = true;
+
 #ifdef BETA
 bool isg = true;
+bool isg_inputAllowed = true;
 #endif
-unsigned long t = 0; // current time
-unsigned long p = 0; // previous time
 
 
 void setup() {
@@ -116,44 +118,42 @@ void loop() {
   char c[50];
   // constantly read the input pins increment/decrement 
   // the drive mode and store it in permanent memory
-  if (digitalRead(4) == LOW){
-    t = millis(); // get current arduino uptime.
-    if (t -  INPUT_WAIT_TIME > p){ 
-      if (currentMode >= CUSTOMMODE){
-        currentMode = CUSTOMMODE; 
-      } else {
-        currentMode++;
-      }
-      sprintf(c, "Clock Triggered, Current Mode: %s", modeText(currentMode));
-      EEPROM.write(memAddress, currentMode);
-      DEBUG_PRINT(c);
-      p = t; // last reading is now, set p(revious) to current time
-    }
+  if (digitalRead(4) == HIGH && digitalRead(3) == HIGH && !dm_inputAllowed){
+    dm_inputAllowed = true;
   }
-  if (digitalRead(3) == LOW){
-    t = millis(); // get current arduino uptime.
-    if (t - INPUT_WAIT_TIME > p){ 
-      if (currentMode <= SMARTMODE){
-        currentMode = SMARTMODE; 
-      } else {
-        currentMode--;
-      }
-      sprintf(c, "CClock Triggered, Current Mode: %s", modeText(currentMode));
-      EEPROM.write(memAddress, currentMode);
-      DEBUG_PRINT(c);
-      p = t; // last reading is now, set p(revious) to current time
+  
+  if (digitalRead(4) == LOW && dm_inputAllowed){
+    if (currentMode >= CUSTOMMODE){
+      currentMode = CUSTOMMODE; 
+    } else {
+      currentMode++;
     }
+    sprintf(c, "Clock Triggered, Current Mode: %s", modeText(currentMode));
+    EEPROM.write(memAddress, currentMode);
+    DEBUG_PRINT(c);
+    dm_inputAllowed = false;
+  }
+  if (digitalRead(3) == LOW && dm_inputAllowed){
+    if (currentMode <= SMARTMODE){
+      currentMode = SMARTMODE; 
+    } else {
+      currentMode--;
+    }
+    sprintf(c, "CClock Triggered, Current Mode: %s", modeText(currentMode));
+    EEPROM.write(memAddress, currentMode);
+    DEBUG_PRINT(c);
+    dm_inputAllowed = false;
   }
 #ifdef BETA
+  if (digitalRead(8) == HIGH && !isg_inputAllowed){
+    isg_inputAllowed = true;
+  }
   if (digitalRead(7) == LOW){
-    t = millis(); // get current arduino uptime.
-    if (t -  INPUT_WAIT_TIME > p){
-      isg = !isg; // reverse the value from current.
-      sprintf(c, "ISG Triggered, Current Mode: %s", isg ? "on" : "off");
-      EEPROM.write(memFuture1Addr, isg);
-      DEBUG_PRINT(c);
-      p = t; // last reading is now, set p(revious) to current time
-    }
+    isg = !isg; // reverse the value from current.
+    sprintf(c, "ISG Triggered, Current Mode: %s", isg ? "on" : "off");
+    EEPROM.write(memFuture1Addr, isg);
+    DEBUG_PRINT(c);
+    isg_inputAllowed = false;
   }
 #endif
 }
