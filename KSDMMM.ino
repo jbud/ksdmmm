@@ -148,7 +148,7 @@ void loop() {
   if (digitalRead(8) == HIGH && !isg_inputAllowed){
     isg_inputAllowed = true;
   }
-  if (digitalRead(7) == LOW){
+  if (digitalRead(7) == LOW && isg_inputAllowed){
     isg = !isg; // reverse the value from current.
     sprintf(c, "ISG Triggered, Current Mode: %s", isg ? "on" : "off");
     EEPROM.write(memFuture1Addr, isg);
