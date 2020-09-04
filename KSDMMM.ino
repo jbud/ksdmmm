@@ -164,7 +164,7 @@ void loop() {
   if (digitalRead(9) == LOW && ahold_inputAllowed){
     ahold = !ahold; // reverse the value from current.
     sprintf(c, "Auto Hold Triggered, Current Mode: %s", ahold ? "on" : "off");
-    EEPROM.write(memFuture2Addr, isg);
+    EEPROM.write(memFuture2Addr, ahold);
     DEBUG_PRINT(c);
     ahold_inputAllowed = false;
   }
