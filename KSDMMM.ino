@@ -4,7 +4,7 @@
  * microcontroller programming in arduino (C++)
  * 
  * by Joe Jackson 2020
- * Version 0.9.3b
+ * Version 0.9.4b
  */
 #include <EEPROM.h>
 
@@ -30,6 +30,7 @@
 int memAddress = 0; 
 int memSetupAddr = 1;
 int memFuture1Addr = 2;
+int memFuture2Addr = 3;
 
 const byte SMARTMODE = 0;
 const byte ECOMODE = 1;
@@ -42,9 +43,12 @@ byte currentMode;
 bool dm_inputAllowed = true;
 
 #ifdef BETA
+bool ahold = false;
+bool ahold_inputAllowed = true;
+#endif
 bool isg = true;
 bool isg_inputAllowed = true;
-#endif
+
 
 
 void setup() {
@@ -52,13 +56,18 @@ void setup() {
   pinMode(4, INPUT_PULLUP); // counterclockwise input
   pinMode(5, OUTPUT);
   pinMode(6, OUTPUT);
-#ifdef BETA
   pinMode(7, INPUT_PULLUP); // ISG (Auto Start Stop) input
   pinMode(8, OUTPUT);
+#ifdef BETA
+  pinMode(9, INPUT_PULLUP); // Auto Hold input
+  pinMode(10, OUTPUT);
+  if (EEPROM.read(memFuture2Addr)) {
+    ahold = true; // enable Autohold
+  }
+#endif
   if (!EEPROM.read(memFuture1Addr)) {
     isg = false; // disable ISG
   }
-#endif
   //If initial setup hasn't completed, set the default drive mode
   if (EEPROM.read(memSetupAddr) != 1) { 
     // Write the default to permanent memory
@@ -99,6 +108,13 @@ void setup() {
     DEBUG_PRINT("mode has changed.");
   }
 #ifdef BETA
+  if (ahold){
+    digitalWrite(10, HIGH);
+    delay(250);
+    digitalWrite(10, LOW);
+    DEBUG_PRINT("Autohold Enabled");
+  }
+#endif
   // if ISG is disabled in memory, send a signal. ISG is on by default.
   if (!isg){
     digitalWrite(8, HIGH);
@@ -106,7 +122,6 @@ void setup() {
     digitalWrite(8, LOW);
     DEBUG_PRINT("ISG Disabled");
   }
-#endif
   char s[50];
   sprintf(s, "setup mode: %s", modeText(currentMode));
   DEBUG_PRINT(s);
@@ -143,6 +158,17 @@ void loop() {
     dm_inputAllowed = false;
   }
 #ifdef BETA
+  if (digitalRead(9) == HIGH && !ahold_inputAllowed){
+    ahold_inputAllowed = true;
+  }
+  if (digitalRead(9) == LOW && ahold_inputAllowed){
+    ahold = !ahold; // reverse the value from current.
+    sprintf(c, "Auto Hold Triggered, Current Mode: %s", ahold ? "on" : "off");
+    EEPROM.write(memFuture2Addr, isg);
+    DEBUG_PRINT(c);
+    ahold_inputAllowed = false;
+  }
+#endif
   if (digitalRead(7) == HIGH && !isg_inputAllowed){
     isg_inputAllowed = true;
   }
@@ -153,7 +179,6 @@ void loop() {
     DEBUG_PRINT(c);
     isg_inputAllowed = false;
   }
-#endif
 }
 
 // simulate a clockwise turn of drive mode num times
