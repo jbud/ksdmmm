@@ -12,7 +12,7 @@
 #define DEBUG
 
 // beta stuff (uncomment to use beta features)
-#define BETA
+//#define BETA
 
 
 // some arduinos have issues with pulling ground to some pins upon startup.
@@ -27,8 +27,8 @@
  #define DEBUG_PRINT(x)
 #endif
 
-int memAddress = 0; 
-int memSetupAddr = 1;
+int memDAddr = 0; 
+int memSAddr = 1;
 int memFuture1Addr = 2;
 int memFuture2Addr = 3;
 
@@ -69,17 +69,17 @@ void setup() {
     isg = false; // disable ISG
   }
   //If initial setup hasn't completed, set the default drive mode
-  if (EEPROM.read(memSetupAddr) != 1) { 
+  if (EEPROM.read(memSAddr) != 1) { 
     // Write the default to permanent memory
-    EEPROM.write(memAddress, COMFORTMODE);
-    EEPROM.write(memSetupAddr, 1);
+    EEPROM.write(memDAddr, COMFORTMODE);
+    EEPROM.write(memSAddr, 1);
     currentMode = COMFORTMODE;
   } else {
     // Setup has completed read the current mode from permanent memory
-    currentMode = EEPROM.read(memAddress); 
+    currentMode = EEPROM.read(memDAddr); 
   }
 #ifdef DEBUG
-  Serial.begin(9600);
+  Serial.begin(19200);
 #endif
 
   bool modechanged = true;
@@ -142,7 +142,7 @@ void loop() {
       currentMode++;
     }
     sprintf(c, "Clock Triggered, Current Mode: %s", modeText(currentMode));
-    EEPROM.write(memAddress, currentMode);
+    EEPROM.write(memDAddr, currentMode);
     DEBUG_PRINT(c);
     dm_inputAllowed = false;
   }
@@ -153,7 +153,7 @@ void loop() {
       currentMode--;
     }
     sprintf(c, "CClock Triggered, Current Mode: %s", modeText(currentMode));
-    EEPROM.write(memAddress, currentMode);
+    EEPROM.write(memDAddr, currentMode);
     DEBUG_PRINT(c);
     dm_inputAllowed = false;
   }

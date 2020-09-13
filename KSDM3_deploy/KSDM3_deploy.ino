@@ -17,6 +17,7 @@
 int memAddress = 0; 
 int memSetupAddr = 1;
 int memISGAddr = 2;
+int memFuture2Addr = 3;
 
 const byte SMARTMODE = 0;
 const byte ECOMODE = 1;
@@ -27,6 +28,9 @@ const byte CUSTOMMODE = 4;
 byte currentMode;
 
 bool dm_inputAllowed = true;
+
+bool ahold = false;
+bool ahold_inputAllowed = true;
 
 bool isg = true;
 bool isg_inputAllowed = true;
@@ -39,6 +43,11 @@ void setup() {
   pinMode(6, OUTPUT);
   pinMode(7, INPUT_PULLUP); // ISG (Auto Start Stop) input
   pinMode(8, OUTPUT);
+  pinMode(9, INPUT_PULLUP); // Auto Hold input
+  pinMode(10, OUTPUT);
+  if (EEPROM.read(memFuture2Addr)) {
+    ahold = true; // enable Autohold
+  }
   if (!EEPROM.read(memISGAddr)) {
     isg = false; // disable ISG
   }
@@ -72,6 +81,11 @@ void setup() {
         break;
       default:
         break;
+  }
+  if (ahold){
+    digitalWrite(10, HIGH);
+    delay(250);
+    digitalWrite(10, LOW);
   }
   // if ISG is disabled in memory, send a signal. ISG is on by default.
   if (!isg){
@@ -113,6 +127,14 @@ void loop() {
     isg = !isg; // reverse the value from current.
     EEPROM.write(memISGAddr, isg);
     isg_inputAllowed = false;
+  }
+  if (digitalRead(9) == HIGH && !ahold_inputAllowed){
+    ahold_inputAllowed = true;
+  }
+  if (digitalRead(9) == LOW && ahold_inputAllowed){
+    ahold = !ahold; // reverse the value from current.
+    EEPROM.write(memFuture2Addr, ahold);
+    ahold_inputAllowed = false;
   }
 }
 
