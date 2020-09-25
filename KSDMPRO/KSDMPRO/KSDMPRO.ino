@@ -92,6 +92,22 @@ bool wheelHeat;
 bool aepb;
 bool raceMode;
 
+// ## polling switches
+//Standard
+bool dm_i = true;
+bool isg_i = true;
+bool ahold_i = true;
+bool traction_i = true;
+bool seatHeat_i = true;
+bool seatCool_i = true;
+bool wheelHeat_i = true;
+//Special
+bool pInd_i = true;
+bool tChange;
+
+unsigned long t;
+unsigned long p;
+
 #ifndef EEPROMMODE
 FRAM fram;
 #endif
@@ -215,14 +231,131 @@ void setup() {
 }
 
 void loop() {
-  // TODO POLLING
+  bool tCustom = false;
+  if (digitalRead(DMRI) == HIGH && digitalRead(DMLI) == HIGH && !dm_i){
+    dm_i = true;
+  }
+  if (digitalRead(ISGI) == HIGH && !isg_i){
+    isg_i = true;
+  }
+  if (digitalRead(AHI) == HIGH && !ahold_i){
+    ahold_i = true;
+  }
+  if (digitalRead(TRCI) == HIGH && !traction_i){
+    traction_i = true;
+  }
+  if (digitalRead(HSI) == HIGH && !seatHeat_i && ((digitalRead(VSI) == HIGH) || TWO_TEMP_SEATS)){
+    seatHeat_i = true;
+  }
+  if (digitalRead(VSI) == HIGH && !seatCool_i && ((digitalRead(HSI) == HIGH) || TWO_TEMP_SEATS)){
+    seatCool_i = true;
+  }
+  if (digitalRead(HSWI) == HIGH && !wheelHeat_i){
+    wheelHeat_i = true;
+  }
+  if (digitalRead(PRKI) == LOW && !pInd_i){
+    pInd_i = true;
+  }
+  if (digitalRead(DMRI) == LOW && dm_i){
+    if (currentMode >= CUSTOM){
+      currentMode = CUSTOM; 
+    } else {
+      currentMode++;
+    }
+    if (currentMode == CUSTOM){
+      tCustom = true;
+    }
+    memWrite(mDriveMode, currentMode);
+    dm_i = false;
+  }
+  if (digitalRead(DMLI) == LOW && dm_i){
+    if (currentMode <= SMART){
+      currentMode = SMART; 
+    } else {
+      currentMode--;
+    }
+    memWrite(mDriveMode, currentMode);
+    dm_i = false;
+  }
+  if (digitalRead(ISGI) == LOW && isg_i){
+    isg = !isg; // reverse the value from current.
+    memWrite(mISG, isg);
+    isg_i = false;
+  }
+  if (digitalRead(AHI) == LOW && ahold_i){
+    ahold = !ahold; // reverse the value from current.
+    memWrite(mAutohold, ahold);
+    ahold_i = false;
+  }
+  if (digitalRead(HSWI) == LOW && wheelHeat_i){
+    wheelHeat = !wheelHeat; // reverse the value from current.
+    memWrite(mISG, isg);
+    wheelHeat_i = false;
+  }
+  if (digitalRead(HSI) == LOW && seatHeat_i){
+    seatHeat++;
+    if (seatHeat > SEAT3){
+      seatHeat = SEAT0; // Loop Back
+    }
+    if (!TWO_TEMP_SEATS){
+      seatCool = SEAT0;
+      memWrite(mCooledSeat, seatCool);
+    }
+    memWrite(mHeatedSeat, seatHeat);
+    seatHeat_i = false;
+  }
+  if (digitalRead(VSI) == LOW && seatCool_i){
+    seatCool++;
+    if (seatCool > SEAT3){
+      seatCool = SEAT0; // Loop Back
+    }
+    if (!TWO_TEMP_SEATS){
+      seatHeat = SEAT0;
+      memWrite(mHeatedSeat, seatHeat);
+    }
+    memWrite(mCooledSeat, seatCool);
+    seatCool_i = false;
+  }
+
+  if (digitalRead(TRCI) == LOW){
+    if (traction_i){
+      p = millis();
+      traction_i = false;
+    }
+    t = millis();
+    if (((t - p) > 4500) && !traction_i){ // trigger at 4500 to be safe.
+      traction = ESCOFF;
+      tChange = true;
+    } else {
+      if (!traction_i){
+        if (traction == TRACON){
+          traction = TRACOFF;
+        }
+        if (traction == TRACOFF || traction == ESCOFF){
+          traction = TRACON;
+        }
+        tChange = true;
+      }
+    }
+    if (tChange){
+      memWrite(mTractionMode, traction);
+    }
+  }
   
-  // TODO Automated Actions
+  if (digitalRead(PRKI) == HIGH && pInd_i && aepb){
+    digitalWrite(EPBO, HIGH);
+    delay(500); // 0.5 seconds
+    digitalWrite(EPBO, LOW);
+  }
+  if (tCustom && raceMode) {
+    disableESC();
+    tCustom = false;
+  }
 }
 
 void disableESC(){
   digitalWrite(TRCO, HIGH);
-  delay(10250); // 10.25 seconds
+  delay(5250); // 5.25 seconds
   digitalWrite(TRCO, LOW);
 }
 
