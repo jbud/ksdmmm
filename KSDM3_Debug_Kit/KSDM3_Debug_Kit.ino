@@ -4,9 +4,12 @@
  * microcontroller programming in arduino (C++)
  * 
  * by Joe Jackson 2020
- * Version 1.0
+ * Version 0.9.9b
  */
 #include <EEPROM.h>
+#include <KSDEBUG.h>
+
+KSDEBUG debug;
 
 #define OFFSET 1
 
@@ -30,7 +33,7 @@ bool ahold;
 bool dm_i = true;
 bool ahold_i = true;
 bool isg_i = true;
-
+char c[50];
 void setup() {
   pinMode(3, INPUT_PULLUP); // clockwise input
   pinMode(4, INPUT_PULLUP); // counterclockwise input
@@ -40,6 +43,7 @@ void setup() {
   pinMode(8, OUTPUT);
   pinMode(9, INPUT); // Auto Hold input
   pinMode(10, OUTPUT);
+  debug.init();
 
   if (EEPROM.read(mSetupAddr) != 1) { 
     // Write the default to permanent memory
@@ -63,6 +67,9 @@ void setup() {
   }
 
   delay(STARTUP_WAIT_TIME);
+
+  sprintf(c, "MEMORY CONTENT: DM: %d, ISG: %d, AHOLD: %d...",currentMode,isg,ahold);
+  debug.writeln(c);
 
   switch(currentMode){
     case SPORT:
@@ -102,18 +109,34 @@ void setup() {
   
 }
 
+unsigned long t;
+unsigned long p = 0;
+char s[50];
+
+void iStats(){
+  t = millis();
+  if (p == 0 || p <= (t - 1000)){
+    sprintf(s, "Status: L: %d, R: %d...",digitalRead(3),digitalRead(4));
+    debug.writeln(s);
+    p = millis();
+  }
+}
 
 void loop() {
+  char z[50];
+  //iStats();
   if (digitalRead(4) == LOW && digitalRead(3) == LOW && !dm_i){
     dm_i = true;
   }
 
   if (digitalRead(7) == HIGH && !isg_i){
     isg_i = true;
+    debug.writeln("ISG Allowed");
   }
 
   if (digitalRead(9) == LOW && !ahold_i){
     ahold_i = true;
+    debug.writeln("AHOLD Allowed");
   }
 
   if (digitalRead(4) == HIGH && dm_i){
@@ -123,6 +146,8 @@ void loop() {
       currentMode++;
     }
     EEPROM.write(mDMAddr, currentMode);
+    sprintf(z, "DM: Changed, mode: %d",currentMode);
+    debug.writeln(z);
     dm_i = false;
   }
 
@@ -133,18 +158,24 @@ void loop() {
       currentMode--;
     }
     EEPROM.write(mDMAddr, currentMode);
+    sprintf(z, "DM: Changed, mode: %d",currentMode);
+    debug.writeln(z);
     dm_i = false;
   }
   
   if (digitalRead(7) == LOW && isg_i){
     isg = !isg; // reverse the value from current.
     EEPROM.write(mISGAddr, isg);
+    sprintf(z, "ISG: Changed, mode: %d",isg);
+    debug.writeln(z);
     isg_i = false;
   }
 
   if (digitalRead(9) == HIGH && ahold_i){
     ahold = !ahold; // reverse the value from current.
     EEPROM.write(mAHoldAddr, ahold);
+    sprintf(z, "AHOLD: Changed, mode: %d",ahold);
+    debug.writeln(z);
     ahold_i = false;
   }
 }
@@ -156,6 +187,7 @@ void clockWise(int num){
     delay(500);
     digitalWrite(5, LOW);
     delay(500);
+    debug.writeln("cl");
   }
 }
 
@@ -166,5 +198,6 @@ void counterClockWise(int num){
     delay(500);
     digitalWrite(6, LOW);
     delay(500);
+    debug.writeln("cc");
   }
 }

@@ -49,6 +49,9 @@
 #define HSWO  32 // Heated Steering Wheel
 #define EPBO  18 // Electric Parking Brake
 #define FUTO  38 // Future1 Output 
+#define LEPO  6  // LED Option 0 Indicator
+#define LTRO  7  // LED Option 1 Indicator
+
 
 // ## Define byte settings
 #define SMART 0
@@ -139,6 +142,9 @@ void setup() {
     pinMode(HSWO, OUTPUT);
     pinMode(EPBO, OUTPUT);
     pinMode(FUTO, OUTPUT);
+    pinMode(LEPO, OUTPUT);
+    pinMode(LTRO, OUTPUT);
+    
     
     // ## initial Setup (defaults)
     if (memRead(mSetup) != 0x1F){
@@ -178,6 +184,14 @@ void setup() {
 
     
     delay(STARTUP_WAIT_TIME);
+
+    
+    if (aepb){
+      digitalWrite(LEPO, HIGH);
+    }
+    if (raceMode){
+      digitalWrite(LTRO, HIGH);
+    }
     if (ahold){
       digitalWrite(AHO, HIGH);
       delay(250);
