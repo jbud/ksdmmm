@@ -13,19 +13,19 @@
 #define WRITE_DELAY       250
 
 // MODES
-const byte SMART    = 0x01;
-const byte ECO      = 0x02;
-const byte COMFORT  = 0x03;  
-const byte SPORT    = 0x04;
-const byte CUSTOM   = 0x05;
+const byte SMART      = 0x01;
+const byte ECO        = 0x02;
+const byte COMFORT    = 0x03;  
+const byte SPORT      = 0x04;
+const byte CUSTOM     = 0x05;
 
 // MASKS
-const byte SETUP    = 0x80;
-const byte AHOLD    = 0x40;
-const byte ISG      = 0x20;
-const byte MODE     = 0x07;
+const byte SETUP      = 0x80;
+const byte AHOLD      = 0x40;
+const byte ISG        = 0x20;
+const byte MODE       = 0x07;
 
-const byte DEFAULT  = 0xA3; // comfort, isg on, autohold off.
+const byte KSDEFAULT  = 0xA3; // comfort, isg on, autohold off.
 
 // PINS
 const int DMR_IN   = 3;
@@ -47,7 +47,7 @@ bool ahold_i = true;
 bool isg_i = true;
 bool changed = false;
 
-EEPROMW eepromw(); //eepromw.write(eepromw.read());
+EEPROMW eepromw; //eepromw.write(eepromw.read());
 
 byte pack_byte(byte mode, byte isg, byte ahold)
 {
@@ -59,7 +59,7 @@ void unpack_byte(byte b)
 {
   isSetup = (b & SETUP) >> 7; // 0xE5 & 0x80 >> 7 = 1
   isAhold = (b & AHOLD) >> 6; // 0xE5 & 0x40 >> 6 = 1
-  isISG = (b & ISG) >> 5;     // 0xE5 & 0x20 >> 5 = 1
+  isIsg = (b & ISG) >> 5;     // 0xE5 & 0x20 >> 5 = 1
   currentMode = b & MODE;     // 0xE5 & 0x07 = 5
 }
 
@@ -74,13 +74,13 @@ void setup()
   pinMode(ISG_OUT, OUTPUT);
   pinMode(AH_IN, INPUT);
   pinMode(AH_OUT, OUTPUT);
-  
+  eepromw.init();
   memByte = eepromw.read();
   unpack_byte(memByte);
-  
+
   if (!isSetup) 
   { 
-    memByte = DEFAULT; 
+    memByte = KSDEFAULT; 
     eepromw.write(memByte);
     unpack_byte(memByte);    
   }
@@ -174,4 +174,22 @@ void loop()
     changed = false;
   }
 
+}
+void clockWise(int num){
+  for(int i=0;i<num;i++){
+    digitalWrite(5, HIGH);
+    delay(WRITE_DELAY);
+    digitalWrite(5, LOW);
+    delay(WRITE_DELAY);
+  }
+}
+
+// simulate a counterclockwise turn of drive mode num times
+void counterClockWise(int num){
+  for(int i=0;i<num;i++){
+    digitalWrite(6, HIGH);
+    delay(WRITE_DELAY);
+    digitalWrite(6, LOW);
+    delay(WRITE_DELAY);
+  }
 }
