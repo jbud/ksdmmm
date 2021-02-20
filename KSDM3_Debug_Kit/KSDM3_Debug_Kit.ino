@@ -11,7 +11,7 @@
 
 KSDEBUG debug;
 
-#define OFFSET 1
+#define OFFSET 0
 
 #define STARTUP_WAIT_TIME 4000
 
@@ -25,6 +25,10 @@ const byte ECO      = 1; // b00000001
 const byte COMFORT  = 2; // b00000010
 const byte SPORT    = 3; // b00000011
 const byte CUSTOM   = 4; // b00000100
+
+
+////// 00000000 
+////// SAI00DDD
 
 byte currentMode;
 bool isg;
@@ -125,7 +129,7 @@ void iStats(){
 void loop() {
   char z[50];
   //iStats();
-  if (digitalRead(4) == LOW && digitalRead(3) == LOW && !dm_i){
+  if (digitalRead(4) == HIGH && digitalRead(3) == HIGH && !dm_i){
     dm_i = true;
   }
 
@@ -139,7 +143,7 @@ void loop() {
     debug.writeln("AHOLD Allowed");
   }
 
-  if (digitalRead(4) == HIGH && dm_i){
+  if (digitalRead(3) == LOW && dm_i){
     if (currentMode >= CUSTOM){
       currentMode = CUSTOM; 
     } else {
@@ -151,7 +155,7 @@ void loop() {
     dm_i = false;
   }
 
-  if (digitalRead(3) == HIGH && dm_i){
+  if (digitalRead(4) == LOW && dm_i){
     if (currentMode <= SMART){
       currentMode = SMART; 
     } else {
