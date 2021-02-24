@@ -51,7 +51,7 @@ EEPROMW eepromw; //eepromw.write(eepromw.read());
 
 byte pack_byte(byte mode, byte isg, byte ahold)
 {
-  return SETUP | mode | isg | ahold; // setup is implied
+  return SETUP | mode | (isg << 6) | (ahold << 5); // setup is implied
 }
 
 

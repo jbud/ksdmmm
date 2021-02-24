@@ -11,7 +11,7 @@
 
 KSDEBUG debug;
 
-#define OFFSET 0
+#define OFFSET 1
 
 #define STARTUP_WAIT_TIME 4000
 

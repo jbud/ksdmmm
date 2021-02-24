@@ -36,7 +36,7 @@ void setup() {
   pinMode(4, INPUT_PULLUP); // counterclockwise input
   pinMode(5, OUTPUT);
   pinMode(6, OUTPUT);
-  pinMode(7, INPUT); // ISG (Auto Start Stop) input
+  pinMode(7, INPUT_PULLUP); // ISG (Auto Start Stop) input
   pinMode(8, OUTPUT);
   pinMode(9, INPUT); // Auto Hold input
   pinMode(10, OUTPUT);
@@ -104,7 +104,7 @@ void setup() {
 
 
 void loop() {
-  if (digitalRead(4) == LOW && digitalRead(3) == LOW && !dm_i){
+  if (digitalRead(4) == HIGH && digitalRead(3) == HIGH && !dm_i){
     dm_i = true;
   }
 
@@ -116,7 +116,7 @@ void loop() {
     ahold_i = true;
   }
 
-  if (digitalRead(4) == HIGH && dm_i){
+  if (digitalRead(3) == LOW && dm_i){
     if (currentMode >= CUSTOM){
       currentMode = CUSTOM; 
     } else {
@@ -126,7 +126,7 @@ void loop() {
     dm_i = false;
   }
 
-  if (digitalRead(3) == HIGH && dm_i){
+  if (digitalRead(4) == LOW && dm_i){
     if (currentMode <= SMART){
       currentMode = SMART; 
     } else {
